@@ -34,6 +34,7 @@
     "pretest": "npm run compile-tests && npm run compile && npm run lint",
     "lint": "eslint src",
     "test": "vscode-test",
+    "get-chromedriver": "extest get-chromedriver",
     "clean": "rm -rf ./.test-extensions && rm -rf ./out && rm -rf ./dist",
     "deepclean": "npm run clean && rm -rf ./node_modules && npm cache clean --force && npm install",
     "ui-test": "npm run clean && npm run compile-tests && extest setup-and-run './out/ui-test/*.test.js' --code_version max --code_settings settings.json --extensions_dir .test-extensions"
@@ -58,6 +59,7 @@
     "webpack-cli": "^5.1.4"
   },
   "dependencies": {
+    "@vscode/webview-ui-toolkit": "^1.4.0",
     "node-polyfill-webpack-plugin": "^4.0.0",
     "pdfjs-dist": "^4.7.76"
   }

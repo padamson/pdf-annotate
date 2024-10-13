@@ -71,6 +71,9 @@ function getWebviewContent(context: vscode.ExtensionContext, panel: vscode.Webvi
 	const indexJsPath = path.join(context.extensionPath, 'dist', 'index.js');
     let indexJsContent = fs.readFileSync(indexJsPath, 'utf8');
 
+	const toolkitPath = vscode.Uri.file(path.join(context.extensionPath, 'dist', 'toolkit.js'));
+	const toolkitUri = panel.webview.asWebviewUri(toolkitPath);
+
 	const workerMjsPath = vscode.Uri.file(path.join(context.extensionPath, 'dist', 'pdf.worker.mjs'));
 	const workerMjsUri = panel.webview.asWebviewUri(workerMjsPath);
 
@@ -81,6 +84,7 @@ function getWebviewContent(context: vscode.ExtensionContext, panel: vscode.Webvi
     htmlContent = htmlContent.replace('{{indexJsCode}}', indexJsContent.toString());
 	htmlContent = htmlContent.replace('{{pdfDataBase64}}', pdfDatabase64);
 	htmlContent = htmlContent.replace('{{workerMjsUri}}', workerMjsUri.toString());
+	htmlContent = htmlContent.replace('{{toolkitUri}}', toolkitUri.toString());
 
     return htmlContent;
 

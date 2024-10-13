@@ -100,34 +100,56 @@ const textLayerDiv = document.getElementById('text-layer') as HTMLDivElement;
 let currentPage = 1;
 let pdfDocument: pdfjsLib.PDFDocumentProxy;
 let scale = 1.5;
-let numPages = 1;
+let numPages: number;
+let prevButton: HTMLButtonElement | null = null;
+let nextButton: HTMLButtonElement | null = null;
 
 // Load the PDF
 const loadingTask = pdfjsLib.getDocument({ data: atob('{{pdfDataBase64}}') });
 loadingTask.promise.then(function (pdf) {
     pdfDocument = pdf;
     numPages = pdfDocument.numPages;
+    console.log('Number of pages in the PDF before rendering:', numPages);
     renderPage(currentPage);
-});
+    console.log('Number of pages in the PDF after rendering:', numPages);
 
-let prevButton: HTMLButtonElement | null = null;
-let nextButton: HTMLButtonElement | null = null;
+    if (numPages > 1) {
+        console.log('Number of pages is ', numPages, ' so adding buttons...');
+        const controls = document.getElementById('controls');
+        if (controls) {
+            controls.innerHTML = '<vscode-panels> <vscode-panel-view id="buttons"> <vscode-button id="prev-page">Previous Page</vscode-button> <vscode-button id="next-page">Next Page</vscode-button> </vscode-panel-view> </vscode-panels>';
+        }
+        prevButton = document.getElementById('prev-page') as HTMLButtonElement;
+        nextButton = document.getElementById('next-page') as HTMLButtonElement;
+    
+        // Add event listeners to the buttons
+        if (prevButton) {
+            (prevButton as HTMLButtonElement).addEventListener('click', () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderPage(currentPage);
+                }
+            });
+        }
 
-if (numPages > 1) {
-    console.log('Number of pages is ', numPages, ' so adding buttons...');
-    const controls = document.getElementById('controls');
-    if (controls) {
-        controls.innerHTML = '<vscode-panels> <vscode-panel-view id="buttons"> <vscode-button id="prev-page">Previous Page</vscode-button> <vscode-button id="next-page">Next Page</vscode-button> </vscode-panel-view> </vscode-panels>';
+        if (nextButton) {
+            (nextButton as HTMLButtonElement).addEventListener('click', () => {
+                if (currentPage < pdfDocument.numPages) {
+                    currentPage++;
+                    renderPage(currentPage);
+                }
+            });
+        }
     }
-    prevButton = document.getElementById('prev-page') as HTMLButtonElement;
-    nextButton = document.getElementById('next-page') as HTMLButtonElement;
-}
 
-if (!pdfViewer || !canvas || !textLayerDiv || (numPages > 1 && (!prevButton || !nextButton))) {
-    console.error('One or more required elements are missing from the DOM');
-} else {
-    console.log('All required elements are present in the DOM');
-}
+    if (!pdfViewer || !canvas || !textLayerDiv || (numPages > 1 && (!prevButton || !nextButton))) {
+        console.error('One or more required elements are missing from the DOM');
+    } else {
+        console.log('All required elements are present in the DOM');
+    }
+}).catch(error => {
+    console.error('Error loading PDF:', error);
+});
 
 let textLayerOffsetX = 0; // Adjust these values as needed
 let textLayerOffsetY = -12; // Adjust these values as needed
@@ -156,23 +178,3 @@ function highlightSelection(selection: Selection | null) {
     }
 }
 
-// Add event listeners to the buttons
-const prevPageButton = document.getElementById('prev-page');
-if (prevPageButton) {
-    prevPageButton.addEventListener('click', () => {
-        if (currentPage > 1) {
-            currentPage--;
-            renderPage(currentPage);
-        }
-    });
-}
-
-const nextPageButton = document.getElementById('next-page');
-if (nextPageButton) {
-    nextPageButton.addEventListener('click', () => {
-        if (currentPage < pdfDocument.numPages) {
-            currentPage++;
-            renderPage(currentPage);
-        }
-    });
-}

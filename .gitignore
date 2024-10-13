@@ -1,0 +1,12 @@
+out
+dist
+node_modules
+.vscode-test/
+*.vsix
+src/ui-test/media/*.aux
+src/ui-test/media/*.fdb_latexmk
+src/ui-test/media/*.fls
+src/ui-test/media/*.log
+src/ui-test/media/*.pdf
+src/ui-test/media/*.synctex.gz
+.test-extensions

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Viewer</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+
+        #controls {
+            padding: 10px;
+        }
+
+        #pdf-viewer {
+            flex-grow: 1;
+            position: relative;
+            overflow: auto;
+        }
+
+        #pdf-render {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        #text-layer {
+            position: absolute;
+            left: 0;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            overflow: hidden;
+            opacity: 0.5;
+            line-height: 1.0;
+        }
+
+        #text-layer>span {
+            color: transparent;
+            position: absolute;
+            white-space: pre;
+            cursor: text;
+            transform-origin: 0% 0%;
+        }
+
+        .highlight {
+            background-color: yellow;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="controls">
+    </div>
+    <div id="pdf-viewer">
+        <canvas id="pdf-render"></canvas>
+        <div id="text-layer"></div>
+    </div>
+    <script>
+        {{indexJsCode}}
+    </script>
+</body>
+
+</html>

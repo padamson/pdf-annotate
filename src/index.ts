@@ -155,8 +155,6 @@ let textLayerOffsetX = 0; // Adjust these values as needed
 let textLayerOffsetY = -12; // Adjust these values as needed
 let textLayerScale = 0.65; // Adjust these values as needed
 
-// Add event listener for text selection
-//const pdfRenderElement = document.getElementById('pdf-render');
 if (textLayerDiv) {
     textLayerDiv.addEventListener('mouseup', function () {
         const selection = window.getSelection();
@@ -168,17 +166,6 @@ if (textLayerDiv) {
         }
     });
 }
-
-/*
-function highlightSelection(selection: Selection | null) {
-    if (selection && selection.rangeCount && selection.getRangeAt) {
-        const range = selection.getRangeAt(0).cloneRange();
-        const newNode = document.createElement('span');
-        newNode.classList.add('highlight');
-        range.surroundContents(newNode);
-    }
-}
-    */
 
 function highlightSelection(selection: Selection | null) {
     if (selection && selection.rangeCount) {

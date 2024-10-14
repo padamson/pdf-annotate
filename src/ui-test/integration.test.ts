@@ -24,10 +24,11 @@ testCases.forEach(testCase => {
     
     describe(`PDF View WebView tests with ${testCase.testName}`, () => {
         let webView: WebView;
+        let workbench: Workbench;
 
         before(async function() {
             this.timeout(8000); 
-            const workbench = new Workbench();
+            workbench = new Workbench();
             let commandExecuted = false;
             for (let i = 0; i < 3; i++) {
                 try {
@@ -92,6 +93,21 @@ testCases.forEach(testCase => {
                 await testPageRender(1, webView);
             }
         });
+
+        it('checks that text selection highlights and retains previous highlights', async () => {
+            let highlightedElements: WebElement[] = [];
+            const textLayerDiv = await webView.findWebElement(By.id('text-layer'));
+            await simulateTextSelection(workbench, webView, textLayerDiv, 0); // Simulate selecting all text in the first nested div
+            highlightedElements = await webView.findWebElements(By.xpath('/html/body/div[@id="pdf-viewer"]/div[@id="text-layer"]//div//span[@class="highlight"]'));
+            assert.strictEqual(highlightedElements.length, 1, 'Expected 1 highlighted element after first selection');
+            assert.strictEqual(await highlightedElements[0].getText(), 'Top Left', 'First highlighted text should match expected text');
+    
+            await simulateTextSelection(workbench, webView, textLayerDiv, 2); // Simulate selecting all text in the third nested div
+            highlightedElements = await webView.findWebElements(By.xpath('/html/body/div[@id="pdf-viewer"]/div[@id="text-layer"]//div/span[@class="highlight"]'));
+            assert.strictEqual(highlightedElements.length, 2, 'Expected 2 highlighted element after first selection');
+            assert.strictEqual(await highlightedElements[1].getText(), 'Top Right', 'Second highlighted text should match expected text');
+        });
+
     });
 });
 
@@ -149,3 +165,34 @@ async function testPageRender(pageNumber: number, webView: WebView) {
     }
 }
 
+async function simulateTextSelection(workbench: Workbench, webView: WebView, textLayerDiv: WebElement, divIndex: number) {
+    // Find all nested <div> elements within the text-layer div
+    const textElements = await webView.findWebElements(By.xpath('/html/body/div[@id="pdf-viewer"]/div[@id="text-layer"]//div'));
+
+    if (textElements.length > divIndex) {
+        const targetDiv = textElements[divIndex];
+
+        await workbench.getDriver().executeScript((targetDiv: HTMLElement) => {
+            const range = document.createRange();
+            const selection = window.getSelection();
+
+            // Select all text within the target div
+            range.selectNodeContents(targetDiv);
+
+            selection?.removeAllRanges();
+            selection?.addRange(range);
+
+            // Dispatch mouseup event to trigger the highlight function
+            const mouseUpEvent = new MouseEvent('mouseup', {
+                bubbles: true,
+                cancelable: true,
+                view: window
+            });
+            targetDiv.dispatchEvent(mouseUpEvent);
+            console.log('Mouseup event dispatched'); // Debugging statement
+
+        }, targetDiv);
+    } else {
+        console.error(`Div with index ${divIndex} not found`);
+    }
+}

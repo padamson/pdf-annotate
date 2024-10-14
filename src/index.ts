@@ -156,9 +156,9 @@ let textLayerOffsetY = -12; // Adjust these values as needed
 let textLayerScale = 0.65; // Adjust these values as needed
 
 // Add event listener for text selection
-const pdfRenderElement = document.getElementById('pdf-render');
-if (pdfRenderElement) {
-    pdfRenderElement.addEventListener('mouseup', function () {
+//const pdfRenderElement = document.getElementById('pdf-render');
+if (textLayerDiv) {
+    textLayerDiv.addEventListener('mouseup', function () {
         const selection = window.getSelection();
         if (selection) {
             const selectedText = selection.toString();

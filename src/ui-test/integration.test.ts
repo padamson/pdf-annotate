@@ -26,9 +26,7 @@ testCases.forEach(testCase => {
         let webView: WebView;
 
         before(async function() {
-
             this.timeout(8000); 
-
             const workbench = new Workbench();
             let commandExecuted = false;
             for (let i = 0; i < 3; i++) {
@@ -70,7 +68,6 @@ testCases.forEach(testCase => {
         });
 
         it('checks that the PDF is rendered in the webview', async () => {
-            // Look for canvas elements which are typically used to render PDF pages
             const canvasElements = await webView.findWebElements(By.xpath('/html/body/div[@id="pdf-viewer"]/canvas[@id="pdf-render"]'));
             assert.strictEqual(canvasElements.length, 1, 'No canvas elements found, PDF might not be rendered');
         });
@@ -82,7 +79,6 @@ testCases.forEach(testCase => {
         it(`checks that "Previous Page" and "Next Page" buttons ${testCase.buttonPresence} present`, async () => {
             const { nextButton, prevButton } = await getButtons(webView);
             assert.strictEqual(prevButton.length, testCase.numButtons, `"Previous Page" button count ${prevButton.length}, should be ${testCase.numButtons}`);
-        
             assert.strictEqual(nextButton.length, testCase.numButtons, `"Next Page" button count ${nextButton.length}, should be ${testCase.numButtons}`);
         });
 
@@ -91,9 +87,7 @@ testCases.forEach(testCase => {
             if (testCase.numPages > 1) {
                 const { nextButton, prevButton } = await getButtons(webView);
                 await nextButton[0].click();
-
-                testPageRender(2, webView);
-
+                await testPageRender(2, webView);
                 await prevButton[0].click();
                 await testPageRender(1, webView);
             }

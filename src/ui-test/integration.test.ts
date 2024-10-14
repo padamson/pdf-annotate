@@ -80,17 +80,16 @@ testCases.forEach(testCase => {
         });
 
         it(`checks that "Previous Page" and "Next Page" buttons ${testCase.buttonPresence} present`, async () => {
-            const prevButton = await webView.findWebElements(By.xpath(`//vscode-button[@id="prev-page"]`));
+            const { nextButton, prevButton } = await getButtons(webView);
             assert.strictEqual(prevButton.length, testCase.numButtons, `"Previous Page" button count ${prevButton.length}, should be ${testCase.numButtons}`);
         
-            const nextButton = await webView.findWebElements(By.xpath(`//vscode-button[@id="next-page"]`));
             assert.strictEqual(nextButton.length, testCase.numButtons, `"Next Page" button count ${nextButton.length}, should be ${testCase.numButtons}`);
         });
 
         it('checks that clicking the Next Page and Previous Page buttons changes the text', async () => {
 
             if (testCase.numPages > 1) {
-                const nextButton = await webView.findWebElements(By.xpath('//vscode-button[@id="next-page"]'));
+                const { nextButton, prevButton } = await getButtons(webView);
                 await nextButton[0].click();
 
                 
@@ -119,13 +118,18 @@ testCases.forEach(testCase => {
                     assert.strictEqual(text, subTestCase.expectedText, `Expected text "${subTestCase.expectedText}" is not found at index ${subTestCase.index}`);
                 }
 
-                const prevButton = await webView.findWebElements(By.xpath('//vscode-button[@id="prev-page"]'));
                 await prevButton[0].click();
                 await testFirstPageRender(webView);
             }
         });
     });
 });
+
+async function getButtons(webView: WebView) {
+    const nextButton = await webView.findWebElements(By.xpath('//vscode-button[@id="next-page"]'));
+    const prevButton = await webView.findWebElements(By.xpath('//vscode-button[@id="prev-page"]'));
+    return { nextButton, prevButton };
+}
 
 async function testFirstPageRender(webView: WebView) {
 

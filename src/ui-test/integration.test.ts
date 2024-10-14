@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { Workbench, WebView, By, EditorView } from 'vscode-extension-tester';
+import { Workbench, WebView, By, EditorView, WebElement } from 'vscode-extension-tester';
 import * as path from 'path';
 import * as fs from 'fs';
 
@@ -75,23 +75,8 @@ testCases.forEach(testCase => {
             assert.strictEqual(canvasElements.length, 1, 'No canvas elements found, PDF might not be rendered');
         });
 
-        it('checks that the text is rendered in the webview', async () => {    
-            // Optionally, you can also check for specific text or attributes that indicate a rendered PDF
-            const textElements = await webView.findWebElements(By.xpath('/html/body/div[@id="pdf-viewer"]/div[@id="text-layer"]//div'));
-           
-            const subTestCases = [
-                { index: 0, expectedText: 'Top Left' },
-                { index: 2, expectedText: 'Top Right' },
-                { index: 3, expectedText: 'Lorem ipsum dolor sit amet, consectetuer adipiscing elit.' },
-                { index: textElements.length - 3, expectedText: 'Bottom Left' },
-                { index: textElements.length - 1, expectedText: 'Bottom Right' }
-            ];
-        
-            for (const subTestCase of subTestCases) {
-                const text = await textElements[subTestCase.index].getText();
-                assert.strictEqual(text, subTestCase.expectedText, `Expected text "${subTestCase.expectedText}" is not found at index ${subTestCase.index}`);
-            }
-
+        it('checks that the first page text is rendered in the webview', async () => {    
+            await testFirstPageRender(webView);
         });
 
         it(`checks that "Previous Page" and "Next Page" buttons ${testCase.buttonPresence} present`, async () => {
@@ -102,6 +87,71 @@ testCases.forEach(testCase => {
             assert.strictEqual(nextButton.length, testCase.numButtons, `"Next Page" button count ${nextButton.length}, should be ${testCase.numButtons}`);
         });
 
-    });
+        it('checks that clicking the Next Page and Previous Page buttons changes the text', async () => {
 
+            if (testCase.numPages > 1) {
+                const nextButton = await webView.findWebElements(By.xpath('//vscode-button[@id="next-page"]'));
+                await nextButton[0].click();
+
+                
+                let textElements: WebElement[] = [];
+                let attempts = 0;
+                let originalText = '';
+                while (attempts < 10) {
+                    textElements = await webView.findWebElements(By.xpath('/html/body/div[@id="pdf-viewer"]/div[@id="text-layer"]//div'));
+                    originalText = await textElements[0].getText();
+                    if (originalText === 'Top Left') {
+                        break;
+                    }
+                    attempts++;
+                    await new Promise(res => setTimeout(res, 500));
+                }
+                
+                const subTestCases = [
+                    { index: 0, expectedText: 'Top Left' },
+                    { index: 2, expectedText: 'Top Right' },
+                    { index: 3, expectedText: 'Nam dui ligula, fringilla a, euismod sodales, sollicitudin vel, wisi.' },
+                    { index: textElements.length - 3, expectedText: 'Bottom Left' },
+                    { index: textElements.length - 1, expectedText: 'Bottom Right' }
+                ];
+                for (const subTestCase of subTestCases) {
+                    const text = await textElements[subTestCase.index].getText();
+                    assert.strictEqual(text, subTestCase.expectedText, `Expected text "${subTestCase.expectedText}" is not found at index ${subTestCase.index}`);
+                }
+
+                const prevButton = await webView.findWebElements(By.xpath('//vscode-button[@id="prev-page"]'));
+                await prevButton[0].click();
+                await testFirstPageRender(webView);
+            }
+        });
+    });
 });
+
+async function testFirstPageRender(webView: WebView) {
+
+    let textElements: WebElement[] = [];
+    let attempts = 0;
+    let originalText = '';
+    while (attempts < 10) {
+        textElements = await webView.findWebElements(By.xpath('/html/body/div[@id="pdf-viewer"]/div[@id="text-layer"]//div'));
+        originalText = await textElements[0].getText();
+        if (originalText === 'Top Left') {
+            break;
+        }
+        attempts++;
+        await new Promise(res => setTimeout(res, 500));
+    }
+    const subTestCases = [
+        { index: 0, expectedText: 'Top Left' },
+        { index: 2, expectedText: 'Top Right' },
+        { index: 3, expectedText: 'Lorem ipsum dolor sit amet, consectetuer adipiscing elit.' },
+        { index: textElements.length - 3, expectedText: 'Bottom Left' },
+        { index: textElements.length - 1, expectedText: 'Bottom Right' }
+    ];
+
+    for (const subTestCase of subTestCases) {
+        const text = await textElements[subTestCase.index].getText();
+        assert.strictEqual(text, subTestCase.expectedText, `Expected text "${subTestCase.expectedText}" is not found at index ${subTestCase.index}`);
+    }
+}
+

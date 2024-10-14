@@ -76,7 +76,7 @@ testCases.forEach(testCase => {
         });
 
         it('checks that the first page text is rendered in the webview', async () => {    
-            await testFirstPageRender(webView);
+            await testPageRender(1, webView);
         });
 
         it(`checks that "Previous Page" and "Next Page" buttons ${testCase.buttonPresence} present`, async () => {
@@ -92,38 +92,39 @@ testCases.forEach(testCase => {
                 const { nextButton, prevButton } = await getButtons(webView);
                 await nextButton[0].click();
 
-                
-                let textElements: WebElement[] = [];
-                let attempts = 0;
-                let originalText = '';
-                while (attempts < 10) {
-                    textElements = await webView.findWebElements(By.xpath('/html/body/div[@id="pdf-viewer"]/div[@id="text-layer"]//div'));
-                    originalText = await textElements[0].getText();
-                    if (originalText === 'Top Left') {
-                        break;
-                    }
-                    attempts++;
-                    await new Promise(res => setTimeout(res, 500));
-                }
-                
-                const subTestCases = [
-                    { index: 0, expectedText: 'Top Left' },
-                    { index: 2, expectedText: 'Top Right' },
-                    { index: 3, expectedText: 'Nam dui ligula, fringilla a, euismod sodales, sollicitudin vel, wisi.' },
-                    { index: textElements.length - 3, expectedText: 'Bottom Left' },
-                    { index: textElements.length - 1, expectedText: 'Bottom Right' }
-                ];
-                for (const subTestCase of subTestCases) {
-                    const text = await textElements[subTestCase.index].getText();
-                    assert.strictEqual(text, subTestCase.expectedText, `Expected text "${subTestCase.expectedText}" is not found at index ${subTestCase.index}`);
-                }
+                testPageRender(2, webView);
 
                 await prevButton[0].click();
-                await testFirstPageRender(webView);
+                await testPageRender(1, webView);
             }
         });
     });
 });
+
+
+interface PageTextTestCase {
+    index: number;
+    expectedText: string;
+}
+
+async function getPageTestCases(pageNumber: number, textElements_length: number): Promise<PageTextTestCase[]> {
+    const testCases: PageTextTestCase[] = [
+        { index: 0, expectedText: 'Top Left' },
+        { index: 2, expectedText: 'Top Right' },
+        { index: textElements_length - 3, expectedText: 'Bottom Left' },
+        { index: textElements_length - 1, expectedText: 'Bottom Right' }
+    ];
+
+    if (pageNumber === 1) {
+        testCases.push({ index: 3, expectedText: 'Lorem ipsum dolor sit amet, consectetuer adipiscing elit.' });
+    } else if (pageNumber === 2) {
+        testCases.push({ index: 3, expectedText: 'Nam dui ligula, fringilla a, euismod sodales, sollicitudin vel, wisi.' });
+    } else {
+        console.error('Invalid page number:', pageNumber);
+    }
+
+    return testCases;
+};
 
 async function getButtons(webView: WebView) {
     const nextButton = await webView.findWebElements(By.xpath('//vscode-button[@id="next-page"]'));
@@ -131,7 +132,7 @@ async function getButtons(webView: WebView) {
     return { nextButton, prevButton };
 }
 
-async function testFirstPageRender(webView: WebView) {
+async function testPageRender(pageNumber: number, webView: WebView) {
 
     let textElements: WebElement[] = [];
     let attempts = 0;
@@ -145,13 +146,8 @@ async function testFirstPageRender(webView: WebView) {
         attempts++;
         await new Promise(res => setTimeout(res, 500));
     }
-    const subTestCases = [
-        { index: 0, expectedText: 'Top Left' },
-        { index: 2, expectedText: 'Top Right' },
-        { index: 3, expectedText: 'Lorem ipsum dolor sit amet, consectetuer adipiscing elit.' },
-        { index: textElements.length - 3, expectedText: 'Bottom Left' },
-        { index: textElements.length - 1, expectedText: 'Bottom Right' }
-    ];
+
+    const subTestCases = await getPageTestCases(pageNumber, textElements.length);
 
     for (const subTestCase of subTestCases) {
         const text = await textElements[subTestCase.index].getText();

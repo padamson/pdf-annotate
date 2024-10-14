@@ -169,6 +169,7 @@ if (textLayerDiv) {
     });
 }
 
+/*
 function highlightSelection(selection: Selection | null) {
     if (selection && selection.rangeCount && selection.getRangeAt) {
         const range = selection.getRangeAt(0).cloneRange();
@@ -177,4 +178,77 @@ function highlightSelection(selection: Selection | null) {
         range.surroundContents(newNode);
     }
 }
+    */
 
+function highlightSelection(selection: Selection | null) {
+    if (selection && selection.rangeCount) {
+        const range = selection.getRangeAt(0).cloneRange();
+        const startContainer = range.startContainer;
+        const endContainer = range.endContainer;
+
+        // If the start and end containers are the same, we can safely surround the contents
+        if (startContainer === endContainer && startContainer.nodeType === Node.TEXT_NODE) {
+            wrapTextNode(range);
+        } else {
+            // If the selection spans multiple nodes, we need to handle each part separately
+            let currentNode = startContainer;
+            while (currentNode) {
+                const nextNode = getNextNode(currentNode, endContainer);
+                const nodeRange = document.createRange();
+
+                if (currentNode === startContainer) {
+                    nodeRange.setStart(currentNode, range.startOffset);
+                } else {
+                    nodeRange.setStartBefore(currentNode);
+                }
+
+                if (currentNode === endContainer) {
+                    nodeRange.setEnd(currentNode, range.endOffset);
+                } else {
+                    nodeRange.setEndAfter(currentNode);
+                }
+
+                if (currentNode.nodeType === Node.TEXT_NODE) {
+                    wrapTextNode(nodeRange);
+                }
+
+                if (currentNode === endContainer) {
+                    break;
+                }
+
+                if (nextNode) {
+                    currentNode = nextNode;
+                } else {
+                    console.error('Failed to find next node');
+                }
+            }
+        }
+    } else {
+        console.error('Invalid selection or range');
+    }
+}
+
+function wrapTextNode(range: Range) {
+    const text = range.toString();
+    const newNode = document.createElement('span');
+    newNode.classList.add('highlight');
+    newNode.textContent = text;
+    range.deleteContents();
+    range.insertNode(newNode);
+}
+
+function getNextNode(node: Node, endContainer: Node): Node | null {
+    if (node.firstChild) {
+        return node.firstChild;
+    }
+    while (node) {
+        if (node === endContainer) {
+            return null;
+        }
+        if (node.nextSibling) {
+            return node.nextSibling;
+        }
+        node = node.parentNode!;
+    }
+    return null;
+}

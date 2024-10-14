@@ -97,15 +97,21 @@ testCases.forEach(testCase => {
         it('checks that text selection highlights and retains previous highlights', async () => {
             let highlightedElements: WebElement[] = [];
             const textLayerDiv = await webView.findWebElement(By.id('text-layer'));
-            await simulateTextSelection(workbench, webView, textLayerDiv, 0); // Simulate selecting all text in the first nested div
+            await simulateTextSelection(workbench, webView, 0, 0, 0, 8); 
             highlightedElements = await webView.findWebElements(By.xpath('/html/body/div[@id="pdf-viewer"]/div[@id="text-layer"]//div//span[@class="highlight"]'));
             assert.strictEqual(highlightedElements.length, 1, 'Expected 1 highlighted element after first selection');
-            assert.strictEqual(await highlightedElements[0].getText(), 'Top Left', 'First highlighted text should match expected text');
+            assert.strictEqual(await highlightedElements[0].getText(), 'Top Left', 'Highlighted text should match expected text');
     
-            await simulateTextSelection(workbench, webView, textLayerDiv, 2); // Simulate selecting all text in the third nested div
+            await simulateTextSelection(workbench, webView, 2, 0, 2, 9); 
             highlightedElements = await webView.findWebElements(By.xpath('/html/body/div[@id="pdf-viewer"]/div[@id="text-layer"]//div/span[@class="highlight"]'));
-            assert.strictEqual(highlightedElements.length, 2, 'Expected 2 highlighted element after first selection');
-            assert.strictEqual(await highlightedElements[1].getText(), 'Top Right', 'Second highlighted text should match expected text');
+            assert.strictEqual(highlightedElements.length, 2, 'Expected 2 highlighted elements after second selection');
+            assert.strictEqual(await highlightedElements[1].getText(), 'Top Right', 'Highlighted text should match expected text');
+
+            await simulateTextSelection(workbench, webView, 3, 41, 5, 8);
+            highlightedElements = await webView.findWebElements(By.xpath('/html/body/div[@id="pdf-viewer"]/div[@id="text-layer"]//div/span[@class="highlight"]'));
+            assert.strictEqual(highlightedElements.length, 5, 'Expected 5 highlighted elements after third selection');
+            assert.strictEqual(await highlightedElements[2].getText(), 'adipiscing elit.', 'Highlighted text should match expected text');
+            assert.strictEqual(await highlightedElements[4].getText(), 'Ut purus', 'Highlighted text should match expected text');
         });
 
     });
@@ -165,34 +171,44 @@ async function testPageRender(pageNumber: number, webView: WebView) {
     }
 }
 
-async function simulateTextSelection(workbench: Workbench, webView: WebView, textLayerDiv: WebElement, divIndex: number) {
-    // Find all nested <div> elements within the text-layer div
-    const textElements = await webView.findWebElements(By.xpath('/html/body/div[@id="pdf-viewer"]/div[@id="text-layer"]//div'));
+async function simulateTextSelection(
+  workbench: Workbench,
+  webView: WebView,
+  startDivIndex: number,
+  startCharIndex: number,
+  endDivIndex: number,
+  endCharIndex: number
+) {
+  const textElements = await webView.findWebElements(By.xpath('/html/body/div[@id="pdf-viewer"]/div[@id="text-layer"]//div'));
 
-    if (textElements.length > divIndex) {
-        const targetDiv = textElements[divIndex];
+  if (textElements.length > startDivIndex && textElements.length > endDivIndex) {
+    const startDiv = textElements[startDivIndex];
+    const endDiv = textElements[endDivIndex];
 
-        await workbench.getDriver().executeScript((targetDiv: HTMLElement) => {
-            const range = document.createRange();
-            const selection = window.getSelection();
+    await workbench.getDriver().executeScript(
+      (startDiv: HTMLElement, startCharIndex: number, endDiv: HTMLElement, endCharIndex: number) => {
+        const range = document.createRange();
+        const selection = window.getSelection();
 
-            // Select all text within the target div
-            range.selectNodeContents(targetDiv);
+        range.setStart(startDiv.firstChild!, startCharIndex);
+        range.setEnd(endDiv.firstChild!, endCharIndex);
 
-            selection?.removeAllRanges();
-            selection?.addRange(range);
+        selection?.removeAllRanges();
+        selection?.addRange(range);
 
-            // Dispatch mouseup event to trigger the highlight function
-            const mouseUpEvent = new MouseEvent('mouseup', {
-                bubbles: true,
-                cancelable: true,
-                view: window
-            });
-            targetDiv.dispatchEvent(mouseUpEvent);
-            console.log('Mouseup event dispatched'); // Debugging statement
-
-        }, targetDiv);
-    } else {
-        console.error(`Div with index ${divIndex} not found`);
-    }
+        const mouseUpEvent = new MouseEvent('mouseup', {
+          bubbles: true,
+          cancelable: true,
+          view: window
+        });
+        endDiv.dispatchEvent(mouseUpEvent);
+      },
+      startDiv,
+      startCharIndex,
+      endDiv,
+      endCharIndex
+    );
+  } else {
+    console.error(`Div with index ${startDivIndex} or ${endDivIndex} not found`);
+  }
 }

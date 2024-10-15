@@ -172,43 +172,43 @@ async function testPageRender(pageNumber: number, webView: WebView) {
 }
 
 async function simulateTextSelection(
-  workbench: Workbench,
-  webView: WebView,
-  startDivIndex: number,
-  startCharIndex: number,
-  endDivIndex: number,
-  endCharIndex: number
+    workbench: Workbench,
+    webView: WebView,
+    startDivIndex: number,
+    startCharIndex: number,
+    endDivIndex: number,
+    endCharIndex: number
 ) {
-  const textElements = await webView.findWebElements(By.xpath('/html/body/div[@id="pdf-viewer"]/div[@id="text-layer"]//div'));
+    const textElements = await webView.findWebElements(By.xpath('/html/body/div[@id="pdf-viewer"]/div[@id="text-layer"]//div'));
 
-  if (textElements.length > startDivIndex && textElements.length > endDivIndex) {
-    const startDiv = textElements[startDivIndex];
-    const endDiv = textElements[endDivIndex];
+    if (textElements.length > startDivIndex && textElements.length > endDivIndex) {
+        const startDiv = textElements[startDivIndex];
+        const endDiv = textElements[endDivIndex];
 
-    await workbench.getDriver().executeScript(
-      (startDiv: HTMLElement, startCharIndex: number, endDiv: HTMLElement, endCharIndex: number) => {
-        const range = document.createRange();
-        const selection = window.getSelection();
+        await workbench.getDriver().executeScript(
+            (startDiv: HTMLElement, startCharIndex: number, endDiv: HTMLElement, endCharIndex: number) => {
+                const range = document.createRange();
+                const selection = window.getSelection();
 
-        range.setStart(startDiv.firstChild!, startCharIndex);
-        range.setEnd(endDiv.firstChild!, endCharIndex);
+                range.setStart(startDiv.firstChild!, startCharIndex);
+                range.setEnd(endDiv.firstChild!, endCharIndex);
 
-        selection?.removeAllRanges();
-        selection?.addRange(range);
+                selection?.removeAllRanges();
+                selection?.addRange(range);
 
-        const mouseUpEvent = new MouseEvent('mouseup', {
-          bubbles: true,
-          cancelable: true,
-          view: window
-        });
-        endDiv.dispatchEvent(mouseUpEvent);
-      },
-      startDiv,
-      startCharIndex,
-      endDiv,
-      endCharIndex
-    );
-  } else {
-    console.error(`Div with index ${startDivIndex} or ${endDivIndex} not found`);
-  }
+                const mouseUpEvent = new MouseEvent('mouseup', {
+                    bubbles: true,
+                    cancelable: true,
+                    view: window
+                });
+                endDiv.dispatchEvent(mouseUpEvent);
+            },
+            startDiv,
+            startCharIndex,
+            endDiv,
+            endCharIndex
+        );
+    } else {
+        console.error(`Div with index ${startDivIndex} or ${endDivIndex} not found`);
+    }
 }

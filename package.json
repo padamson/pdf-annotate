@@ -22,45 +22,57 @@
         "command": "pdf-annotate.viewPDF",
         "title": "View PDF"
       }
+    ],
+    "customEditors": [
+      {
+        "viewType": "pdf-annotate.pdfAnnotationJsonEditor",
+        "displayName": "PDF Annotation JSON Editor",
+        "selector": [
+          {
+            "filenamePattern": "*.paj"
+          }
+        ],
+        "priority": "default"
+      }
     ]
   },
-  "scripts": {
-    "vscode:prepublish": "npm run package",
-    "compile": "webpack",
-    "watch": "webpack --watch",
-    "package": "webpack --mode production --devtool hidden-source-map",
-    "compile-tests": "tsc -p . --outDir out",
-    "watch-tests": "tsc -p . -w --outDir out",
-    "pretest": "npm run compile-tests && npm run compile && npm run lint",
-    "lint": "eslint src",
-    "test": "vscode-test",
-    "get-chromedriver": "extest get-chromedriver",
-    "clean": "rm -rf ./.test-extensions",
-    "deepclean": "npm run clean && rm -rf ./out && rm -rf ./dist && rm -rf ./node_modules && npm cache clean --force && npm install",
-    "ui-test": "npm run clean && npm run compile-tests && extest setup-and-run './out/ui-test/*.test.js' --code_version max --code_settings settings.json --extensions_dir .test-extensions"
-  },
-  "devDependencies": {
-    "@types/chai": "^5.0.0",
-    "@types/mocha": "^10.0.9",
-    "@types/node": "20.x",
-    "@types/vscode": "^1.94.0",
-    "@typescript-eslint/eslint-plugin": "^8.7.0",
-    "@typescript-eslint/parser": "^8.7.0",
-    "@vscode/test-cli": "^0.0.10",
-    "@vscode/test-electron": "^2.4.1",
-    "chai": "^5.1.1",
-    "copy-webpack-plugin": "^12.0.2",
-    "eslint": "^9.11.1",
-    "os-browserify": "^0.3.0",
-    "ts-loader": "^9.5.1",
-    "typescript": "<5.6.0",
-    "vscode-extension-tester": "^8.8.0",
-    "webpack": "^5.95.0",
-    "webpack-cli": "^5.1.4"
-  },
-  "dependencies": {
-    "@vscode/webview-ui-toolkit": "^1.4.0",
-    "node-polyfill-webpack-plugin": "^4.0.0",
-    "pdfjs-dist": "^4.7.76"
-  }
+"scripts": {
+  "vscode:prepublish": "npm run package",
+  "compile": "webpack",
+  "watch": "webpack --watch",
+  "package": "webpack --mode production --devtool hidden-source-map",
+  "compile-tests": "tsc -p . --outDir out",
+  "watch-tests": "tsc -p . -w --outDir out",
+  "pretest": "npm run compile-tests && npm run compile && npm run lint",
+  "lint": "eslint src",
+  "test": "vscode-test",
+  "get-chromedriver": "extest get-chromedriver",
+  "clean": "rm -rf ./.test-extensions",
+  "deepclean": "npm run clean && rm -rf ./out && rm -rf ./dist && rm -rf ./node_modules && npm cache clean --force && npm install",
+  "ui-test": "npm run clean && npm run compile-tests && extest setup-and-run './out/ui-test/*.test.js' --code_version max --code_settings settings.json --extensions_dir .test-extensions"
+},
+"devDependencies": {
+  "@types/chai": "^5.0.0",
+  "@types/mocha": "^10.0.9",
+  "@types/node": "20.x",
+  "@types/vscode": "^1.94.0",
+  "@typescript-eslint/eslint-plugin": "^8.7.0",
+  "@typescript-eslint/parser": "^8.7.0",
+  "@vscode/test-cli": "^0.0.10",
+  "@vscode/test-electron": "^2.4.1",
+  "chai": "^5.1.1",
+  "copy-webpack-plugin": "^12.0.2",
+  "eslint": "^9.11.1",
+  "os-browserify": "^0.3.0",
+  "ts-loader": "^9.5.1",
+  "typescript": "<5.6.0",
+  "vscode-extension-tester": "^8.8.0",
+  "webpack": "^5.95.0",
+  "webpack-cli": "^5.1.4"
+},
+"dependencies": {
+  "@vscode/webview-ui-toolkit": "^1.4.0",
+  "node-polyfill-webpack-plugin": "^4.0.0",
+  "pdfjs-dist": "^4.7.76"
+}
 }

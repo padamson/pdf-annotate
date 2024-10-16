@@ -37,7 +37,7 @@
       }
     ]
   },
-    "scripts": {
+  "scripts": {
       "vscode:prepublish": "npm run package",
       "compile": "webpack",
       "watch": "webpack --watch",

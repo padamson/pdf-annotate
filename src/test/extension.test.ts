@@ -25,7 +25,6 @@ suite('Extension Test Suite', () => {
 	});
 
 	test('viewPDF command exists', async () => {
-
 		const commands = await vscode.commands.getCommands();
 		assert.ok(commands.includes('pdf-annotate.viewPDF'), 'viewPDF command does not exist');
 	});
@@ -44,6 +43,7 @@ suite('Extension Test Suite', () => {
                 "highlighted-text": "adipiscing elit. Ut purus"
             }
         }`;
+
         const filePath = path.join(__dirname, 'test.paj');
         fs.writeFileSync(filePath, pajContent);
         const uri = vscode.Uri.file(filePath);

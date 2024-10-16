@@ -49,6 +49,7 @@ suite('Extension Test Suite', () => {
         fs.writeFileSync(filePath, pajContent);
         const uri = vscode.Uri.file(filePath);
         const document = await vscode.workspace.openTextDocument(uri);
+        assert.strictEqual(document.languageId, 'pdf-annotation-json', 'The language type of the .paj file is not pdf-annotation-json');
         const editor = await vscode.window.showTextDocument(document);
         await new Promise(res => setTimeout(res, 2000)); 
         const editorText = editor.document.getText();

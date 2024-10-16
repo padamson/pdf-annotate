@@ -55,6 +55,7 @@ const extensionConfig = {
     new CopyWebpackPlugin({
       patterns: [
         { from: 'src/index.html', to: 'index.html' },
+        { from: 'src/language-configuration.json', to: 'language-configuration.json' },
         { from: 'node_modules/@vscode/webview-ui-toolkit/dist/toolkit.js', to: 'toolkit.js' },
         //{ from: 'src/ui-test/media/*.pdf', to: 'temp/[name][ext]' },
         { from: 'node_modules/pdfjs-dist/build/pdf.worker.mjs', to: 'pdf.worker.mjs' }

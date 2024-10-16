@@ -2,8 +2,6 @@ import * as assert from 'assert';
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-//import * as pdfannotate from '../extension';
-//import { Workbench, WebView, By, EditorView } from 'vscode-extension-tester';
 
 suite('Extension Test Suite', () => {
 	vscode.window.showInformationMessage('Start all tests.');
@@ -44,7 +42,8 @@ suite('Extension Test Suite', () => {
                 "end-char": 8,
                 "highlighted-text": "adipiscing elit. Ut purus"
             }
-        }`
+        }`;
+
         const filePath = path.join(__dirname, 'test.paj');
         fs.writeFileSync(filePath, pajContent);
         const uri = vscode.Uri.file(filePath);

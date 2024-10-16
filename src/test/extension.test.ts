@@ -43,7 +43,7 @@ suite('Extension Test Suite', () => {
                 "end-char": 8,
                 "highlighted-text": "adipiscing elit. Ut purus"
             }
-        }`
+        }`;
         const filePath = path.join(__dirname, 'test.paj');
         fs.writeFileSync(filePath, pajContent);
         const uri = vscode.Uri.file(filePath);

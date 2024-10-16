@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
-//import * as pdfannotate from '../extension';
-import { Workbench, WebView, By, EditorView } from 'vscode-extension-tester';
+import * as fs from 'fs';
+import * as path from 'path';
 
 suite('Extension Test Suite', () => {
 	vscode.window.showInformationMessage('Start all tests.');
@@ -29,5 +29,30 @@ suite('Extension Test Suite', () => {
 		const commands = await vscode.commands.getCommands();
 		assert.ok(commands.includes('pdf-annotate.viewPDF'), 'viewPDF command does not exist');
 	});
+
+	test('should open a .paj file in PdfAnnotationJsonEditor', async function() {
+        this.timeout(20000);
+        const pajContent = `{
+            "pdf-file": "single-page.pdf",
+            "annotations": {
+                "annotation": "Some highlighted lorem ipsum text",
+                "page": 1,
+                "start-div": 3,
+                "start-char": 41,
+                "end-div": 5,
+                "end-char": 8,
+                "highlighted-text": "adipiscing elit. Ut purus"
+            }
+        }`
+        const filePath = path.join(__dirname, 'test.paj');
+        fs.writeFileSync(filePath, pajContent);
+        const uri = vscode.Uri.file(filePath);
+        const document = await vscode.workspace.openTextDocument(uri);
+        assert.strictEqual(document.languageId, 'pdf-annotation-json', 'The language type of the .paj file is not pdf-annotation-json');
+        const editor = await vscode.window.showTextDocument(document);
+        await new Promise(res => setTimeout(res, 2000)); 
+        const editorText = editor.document.getText();
+        assert.strictEqual(editorText, pajContent, 'The content of the .paj file does not match the expected content');
+    });
 
 });

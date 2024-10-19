@@ -1,0 +1,12 @@
+{
+    "pdf-file": "single-page.pdf",
+    "annotations": {
+        "annotation": "Some highlighted lorem ipsum text",
+        "page": 1,
+        "start-div": 3,
+        "start-char": 41,
+        "end-div": 5,
+        "end-char": 8,
+        "highlighted-text": "adipiscing elit. Ut purus"
+    }
+}

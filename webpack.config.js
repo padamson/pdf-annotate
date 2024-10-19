@@ -4,7 +4,6 @@
 
 const path = require('path');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
-const NodePolyfillPlugin = require('node-polyfill-webpack-plugin');
 const webpack = require('webpack');
 
 //@ts-check
@@ -60,12 +59,11 @@ const extensionConfig = {
         //{ from: 'src/ui-test/media/*.pdf', to: 'temp/[name][ext]' },
         { from: 'node_modules/pdfjs-dist/build/pdf.worker.mjs', to: 'pdf.worker.mjs' }
       ]
-    }),
-    new NodePolyfillPlugin(),
+    })
   ],
   devtool: 'nosources-source-map',
   infrastructureLogging: {
     level: "log", // enables logging required for problem matchers
   },
 };
-module.exports = [ extensionConfig ];
+module.exports = [extensionConfig];

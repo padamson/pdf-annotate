@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { Workbench, WebView, By, EditorView, WebElement } from 'vscode-extension-tester';
+import { Workbench, WebView, By, EditorView, WebElement, VSBrowser, Editor} from 'vscode-extension-tester';
 import * as path from 'path';
 import * as fs from 'fs';
 
@@ -117,6 +117,39 @@ testCases.forEach(testCase => {
     });
 });
 
+describe('PDF Annotation JSON file formatting tests', () => {
+    let workbench: Workbench;
+    let webView: WebView;
+    const browser = VSBrowser.instance;
+
+    before(async function () {
+        this.timeout(10000);
+        workbench = new Workbench();
+        const extensionPath = path.resolve(__dirname);
+        const pajFilePath = path.join(extensionPath, '../../', 'src', 'ui-test', 'media', 'good.paj');
+        let tempFilePath: string;
+        tempFilePath = path.join(extensionPath, '../../', '.test-extensions', 'padamson.pdf-annotate-0.0.1', 'dist', 'good.paj');
+        fs.copyFile(pajFilePath, tempFilePath, (err: NodeJS.ErrnoException | null) => {
+            if (err) {
+                throw err;
+            }
+            console.log(`Copied ${pajFilePath} to ${tempFilePath}`);
+        });
+        await openResourceWithCheck(browser, tempFilePath);
+        webView = new WebView();
+    });
+
+    after(async () => {
+        await new EditorView().closeAllEditors();
+    });
+
+    it('checks that the language type for the editor is pdf-annotation-json', async () => {
+        const editorInstance = await webView.findWebElements(By.xpath('//div[@class="editor-instance" and @data-mode-id="pdf-annotation-json"]'));
+        assert.strictEqual(editorInstance.length, 1, 'Expected 1 editor instance with pdf-annotation-json language type');
+    });
+
+});
+
 
 interface PageTextTestCase {
     index: number;
@@ -210,5 +243,50 @@ async function simulateTextSelection(
         );
     } else {
         console.error(`Div with index ${startDivIndex} or ${endDivIndex} not found`);
+    }
+}
+
+/**
+ * Function to open a resource and wait until it is ready.
+ * @param browser - The VSBrowser instance.
+ * @param tempFilePath - The path of the file to open.
+ */
+async function openResourceWithCheck(browser: VSBrowser, tempFilePath: string) {
+    await browser.openResources(tempFilePath);
+
+    for (let attempts = 0; attempts < 20; attempts++) { // Adjust the max attempts as needed
+        try {
+            const isOpen = await isResourceOpen(browser, tempFilePath);
+            if (isOpen) {
+                console.log('Resource is open and ready.');
+                return;
+            }
+        } catch (error) {
+            console.error('Error checking resource status:', error);
+        }
+        await new Promise(res => setTimeout(res, 200)); // Adjust the interval as needed
+    }
+
+    throw new Error('Failed to open the resource within the expected time.');
+}
+
+/**
+ * Function to check if the resource is open and ready.
+ * @param browser - The VSBrowser instance.
+ * @param tempFilePath - The path of the file to check.
+ */
+async function isResourceOpen(browser: VSBrowser, tempFilePath: string): Promise<boolean> {
+    // Implement the logic to check if the resource is open
+    // For example, you might check if a specific element is present in the DOM
+    const webView = new WebView();
+    try {
+        const editorInstance = await webView.findWebElements(By.xpath('//div[@class="editor-instance" and @data-mode-id="pdf-annotation-json"]'));
+        if (editorInstance.length > 0) {
+            return true;
+        } else {
+            return false;
+        }
+    } catch (error) {
+        return false;
     }
 }

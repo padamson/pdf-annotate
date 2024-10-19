@@ -24,9 +24,9 @@ suite('Extension Test Suite', () => {
 		assert.strictEqual(installedExtensions[0].id, expectedExtensionId, `Expected only ${expectedExtensionId} to be installed.`);
 	});
 
-	test('viewPDF command exists', async () => {
+	test('viewPAJ command exists', async () => {
 		const commands = await vscode.commands.getCommands();
-		assert.ok(commands.includes('pdf-annotate.viewPDF'), 'viewPDF command does not exist');
+		assert.ok(commands.includes('pdf-annotate.viewPAJ'), 'viewPAJ command does not exist');
 	});
 
 	test('should open a .paj file in PdfAnnotationJsonEditor', async function() {

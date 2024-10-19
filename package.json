@@ -19,8 +19,8 @@
   "contributes": {
     "commands": [
       {
-        "command": "pdf-annotate.viewPDF",
-        "title": "View PDF"
+        "command": "pdf-annotate.viewPAJ",
+        "title": "View PAJ"
       }
     ],
     "languages": [

@@ -10,3 +10,4 @@ src/ui-test/media/*.log
 src/ui-test/media/*.pdf
 src/ui-test/media/*.synctex.gz
 .test-extensions
+tsconfig.tsbuildinfo

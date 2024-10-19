@@ -5,14 +5,16 @@ import * as fs from 'fs';
 
 const testCases = [
     {
-        testName: 'single-page.pdf',
+        testName: 'single-page',
+        pajFile: 'single-page.paj',
         pdfFile: 'single-page.pdf',
         numPages: 1,
         numButtons: 0,
         buttonPresence: 'are not'
     },
     {
-        testName: 'multi-page.pdf',
+        testName: 'multi-page',
+        pajFile: 'multi-page.paj',
         pdfFile: 'multi-page.pdf',
         numPages: 2,
         numButtons: 1,
@@ -22,7 +24,7 @@ const testCases = [
 
 testCases.forEach(testCase => {
     
-    describe(`PDF View WebView tests with ${testCase.testName}`, () => {
+    describe(`PAJ View WebView tests with ${testCase.testName}`, () => {
         let webView: WebView;
         let workbench: Workbench;
 
@@ -33,21 +35,23 @@ testCases.forEach(testCase => {
             for (let i = 0; i < 3; i++) {
                 try {
                     const extensionPath = path.resolve(__dirname);
+                    const mediaPath = path.join(extensionPath, '../../', 'src', 'ui-test', 'media');
+                    const distPath = path.join(extensionPath, '../../', '.test-extensions', 'padamson.pdf-annotate-0.0.1', 'dist');
                     let pdfFile: string;
-                    let tempFilePath: string;
-                    pdfFile = path.join(extensionPath, '../../', 'src', 'ui-test', 'media', testCase.pdfFile);
-                    tempFilePath = path.join(extensionPath, '../../', '.test-extensions', 'padamson.pdf-annotate-0.0.1', 'dist', 'temp.pdf');
-                    fs.copyFile(pdfFile, tempFilePath, (err: NodeJS.ErrnoException | null) => {
-                        if (err) {
-                            throw err;
-                        }
-                        console.log(`Copied ${pdfFile} to ${tempFilePath}`);
-                    });
-                    await workbench.executeCommand('pdf-annotate.viewPDF');
+                    let pajFile: string;
+                    let tempPdfFilePath: string;
+                    let tempPajFilePath: string;
+                    pdfFile = path.join(mediaPath, testCase.pdfFile);
+                    tempPdfFilePath = path.join(distPath, 'temp.pdf');
+                    pajFile = path.join(mediaPath, testCase.pajFile);
+                    tempPajFilePath = path.join(distPath, 'temp.paj');
+                    copyFile(pdfFile, tempPdfFilePath);
+                    copyFile(pajFile, tempPajFilePath);
+                    await workbench.executeCommand('pdf-annotate.viewPAJ');
                     commandExecuted = true;
                     break;
                 } catch (e) {
-                    console.log(`Attempt ${i+1} to execute View PDF command failed. Retrying...`);
+                    console.log(`Attempt ${i+1} to execute View PAJ command failed. Retrying...`);
                     await new Promise(res => setTimeout(res, 1000));
                 }
             }
@@ -55,7 +59,7 @@ testCases.forEach(testCase => {
             if (!commandExecuted) {
                 throw new Error('Failed to execute command after multiple attempts');
             } else {
-                console.log('View PDF command executed successfully.');
+                console.log('View PAJ command executed successfully.');
             }
 
             webView = new WebView();
@@ -126,9 +130,9 @@ describe('PDF Annotation JSON file formatting tests', () => {
         this.timeout(10000);
         workbench = new Workbench();
         const extensionPath = path.resolve(__dirname);
-        const pajFilePath = path.join(extensionPath, '../../', 'src', 'ui-test', 'media', 'good.paj');
+        const pajFilePath = path.join(extensionPath, '../../', 'src', 'ui-test', 'media', 'single-page.paj');
         let tempFilePath: string;
-        tempFilePath = path.join(extensionPath, '../../', '.test-extensions', 'padamson.pdf-annotate-0.0.1', 'dist', 'good.paj');
+        tempFilePath = path.join(extensionPath, '../../', '.test-extensions', 'padamson.pdf-annotate-0.0.1', 'dist', 'single-page.paj');
         fs.copyFile(pajFilePath, tempFilePath, (err: NodeJS.ErrnoException | null) => {
             if (err) {
                 throw err;
@@ -151,10 +155,20 @@ describe('PDF Annotation JSON file formatting tests', () => {
 });
 
 
+function copyFile(testFile: string, tempFilePath: string) {
+    fs.copyFile(testFile, tempFilePath, (err: NodeJS.ErrnoException | null) => {
+        if (err) {
+            throw err;
+        }
+        console.log(`Copied ${testFile} to ${tempFilePath}`);
+    });
+}
+
 interface PageTextTestCase {
     index: number;
     expectedText: string;
 }
+
 
 async function getPageTestCases(pageNumber: number, textElements_length: number): Promise<PageTextTestCase[]> {
     const testCases: PageTextTestCase[] = [

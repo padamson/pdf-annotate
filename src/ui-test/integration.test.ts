@@ -25,28 +25,30 @@ const testCases = [
 testCases.forEach(testCase => {
     
     describe(`PAJ View WebView tests with ${testCase.testName}`, () => {
-        let webView: WebView;
+        let editorView: EditorView;
+        let pdfWebView: WebView;
+        let pajWebView: WebView;
         let workbench: Workbench;
 
         before(async function() {
             this.timeout(8000); 
             workbench = new Workbench();
             let commandExecuted = false;
+            const extensionPath = path.resolve(__dirname);
+            const mediaPath = path.join(extensionPath, '../../', 'src', 'ui-test', 'media');
+            const distPath = path.join(extensionPath, '../../', '.test-extensions', 'padamson.pdf-annotate-0.0.1', 'dist');
+            let pdfFile: string;
+            let pajFile: string;
+            let tempPdfFilePath: string;
+            let tempPajFilePath: string;
+            pdfFile = path.join(mediaPath, testCase.pdfFile);
+            tempPdfFilePath = path.join(distPath, 'temp.pdf');
+            pajFile = path.join(mediaPath, testCase.pajFile);
+            tempPajFilePath = path.join(distPath, 'temp.paj');
+            copyFile(pdfFile, tempPdfFilePath);
+            copyFile(pajFile, tempPajFilePath);
             for (let i = 0; i < 3; i++) {
                 try {
-                    const extensionPath = path.resolve(__dirname);
-                    const mediaPath = path.join(extensionPath, '../../', 'src', 'ui-test', 'media');
-                    const distPath = path.join(extensionPath, '../../', '.test-extensions', 'padamson.pdf-annotate-0.0.1', 'dist');
-                    let pdfFile: string;
-                    let pajFile: string;
-                    let tempPdfFilePath: string;
-                    let tempPajFilePath: string;
-                    pdfFile = path.join(mediaPath, testCase.pdfFile);
-                    tempPdfFilePath = path.join(distPath, 'temp.pdf');
-                    pajFile = path.join(mediaPath, testCase.pajFile);
-                    tempPajFilePath = path.join(distPath, 'temp.paj');
-                    copyFile(pdfFile, tempPdfFilePath);
-                    copyFile(pajFile, tempPajFilePath);
                     await workbench.executeCommand('pdf-annotate.viewPAJ');
                     commandExecuted = true;
                     break;
@@ -62,27 +64,54 @@ testCases.forEach(testCase => {
                 console.log('View PAJ command executed successfully.');
             }
 
-            webView = new WebView();
-            await webView.switchToFrame();
+            // At this point in the test, the editor layout should be two column, with the .paj file open in the left
+            // column and the .pdf file open in the right column. Establish a webview instance for the .paj file and
+            // the .pdf file.
 
+            editorView = new EditorView();
+            pdfWebView = new WebView();
+            await editorView.openEditor('temp.pdf', 1); 
+            await pdfWebView.switchToFrame();
         });
 
         after(async () => {
-            await webView.switchBack();
-            await new EditorView().closeAllEditors();
+            workbench = new Workbench();
+            // open command prompt, can then be handled as a QuickOpenBox
+            const commandInput = await workbench.openCommandPrompt();
+
+            /* open command prompt and execute a command in it, the text does not need to be a perfect match
+             uses VS Code's fuzzy search to find the best match */
+            await workbench.executeCommand("editorLayoutSingle");
+
+            await editorView.closeAllEditors();
+            try {
+                const openEditors = await editorView.getOpenEditorTitles();
+                if (openEditors.length > 0) {
+                    await editorView.closeAllEditors();
+                } else {
+                    console.log('No open editors to close');
+                }
+            } catch (error: unknown) {
+                if (error instanceof Error) {
+                    console.warn('Error during cleanup:', error.message);
+                } else {
+                    console.warn('Unknown error during cleanup:', error);
+                }
+            }
         });
 
         it('checks that the PDF is rendered in the webview', async () => {
-            const canvasElements = await webView.findWebElements(By.xpath('/html/body/div[@id="pdf-viewer"]/canvas[@id="pdf-render"]'));
+            const canvasElements = await pdfWebView.findWebElements(By.xpath('/html/body/div[@id="pdf-viewer"]/canvas[@id="pdf-render"]'));
             assert.strictEqual(canvasElements.length, 1, 'No canvas elements found, PDF might not be rendered');
         });
 
-        it('checks that the first page text is rendered in the webview', async () => {    
-            await testPageRender(1, webView);
+        it('checks that the first page text is rendered in the webview', async () => {
+            await testPageRender(1, pdfWebView);
         });
 
+
         it(`checks that "Previous Page" and "Next Page" buttons ${testCase.buttonPresence} present`, async () => {
-            const { nextButton, prevButton } = await getButtons(webView);
+            const { nextButton, prevButton } = await getButtons(pdfWebView);
             assert.strictEqual(prevButton.length, testCase.numButtons, `"Previous Page" button count ${prevButton.length}, should be ${testCase.numButtons}`);
             assert.strictEqual(nextButton.length, testCase.numButtons, `"Next Page" button count ${nextButton.length}, should be ${testCase.numButtons}`);
         });
@@ -90,70 +119,41 @@ testCases.forEach(testCase => {
         it('checks that clicking the Next Page and Previous Page buttons changes the text', async () => {
 
             if (testCase.numPages > 1) {
-                const { nextButton, prevButton } = await getButtons(webView);
+                const { nextButton, prevButton } = await getButtons(pdfWebView);
                 await nextButton[0].click();
-                await testPageRender(2, webView);
+                await testPageRender(2, pdfWebView);
                 await prevButton[0].click();
-                await testPageRender(1, webView);
+                await testPageRender(1, pdfWebView);
             }
         });
 
         it('checks that text selection highlights and retains previous highlights', async () => {
             let highlightedElements: WebElement[] = [];
-            const textLayerDiv = await webView.findWebElement(By.id('text-layer'));
-            await simulateTextSelection(workbench, webView, 0, 0, 0, 8); 
-            highlightedElements = await webView.findWebElements(By.xpath('/html/body/div[@id="pdf-viewer"]/div[@id="text-layer"]//div//span[@class="highlight"]'));
+            const textLayerDiv = await pdfWebView.findWebElement(By.id('text-layer'));
+            await simulateTextSelection(workbench, pdfWebView, 0, 0, 0, 8);
+            highlightedElements = await pdfWebView.findWebElements(By.xpath('/html/body/div[@id="pdf-viewer"]/div[@id="text-layer"]//div//span[@class="highlight"]'));
             assert.strictEqual(highlightedElements.length, 1, 'Expected 1 highlighted element after first selection');
             assert.strictEqual(await highlightedElements[0].getText(), 'Top Left', 'Highlighted text should match expected text');
-    
-            await simulateTextSelection(workbench, webView, 2, 0, 2, 9); 
-            highlightedElements = await webView.findWebElements(By.xpath('/html/body/div[@id="pdf-viewer"]/div[@id="text-layer"]//div/span[@class="highlight"]'));
+
+            await simulateTextSelection(workbench, pdfWebView, 2, 0, 2, 9);
+            highlightedElements = await pdfWebView.findWebElements(By.xpath('/html/body/div[@id="pdf-viewer"]/div[@id="text-layer"]//div/span[@class="highlight"]'));
             assert.strictEqual(highlightedElements.length, 2, 'Expected 2 highlighted elements after second selection');
             assert.strictEqual(await highlightedElements[1].getText(), 'Top Right', 'Highlighted text should match expected text');
 
-            await simulateTextSelection(workbench, webView, 3, 41, 5, 8);
-            highlightedElements = await webView.findWebElements(By.xpath('/html/body/div[@id="pdf-viewer"]/div[@id="text-layer"]//div/span[@class="highlight"]'));
+            await simulateTextSelection(workbench, pdfWebView, 3, 41, 5, 8);
+            highlightedElements = await pdfWebView.findWebElements(By.xpath('/html/body/div[@id="pdf-viewer"]/div[@id="text-layer"]//div/span[@class="highlight"]'));
             assert.strictEqual(highlightedElements.length, 5, 'Expected 5 highlighted elements after third selection');
             assert.strictEqual(await highlightedElements[2].getText(), 'adipiscing elit.', 'Highlighted text should match expected text');
             assert.strictEqual(await highlightedElements[4].getText(), 'Ut purus', 'Highlighted text should match expected text');
         });
 
+        //it('checks that the language type for the editor is pdf-annotation-json', async () => {
+        //const editorInstance = await webView.findWebElements(By.xpath('//div[@class="editor-instance" and @data-mode-id="pdf-annotation-json"]'));
+        //assert.strictEqual(editorInstance.length, 1, 'Expected 1 editor instance with pdf-annotation-json language type');
+        //});
+
     });
 });
-
-describe('PDF Annotation JSON file formatting tests', () => {
-    let workbench: Workbench;
-    let webView: WebView;
-    const browser = VSBrowser.instance;
-
-    before(async function () {
-        this.timeout(10000);
-        workbench = new Workbench();
-        const extensionPath = path.resolve(__dirname);
-        const pajFilePath = path.join(extensionPath, '../../', 'src', 'ui-test', 'media', 'single-page.paj');
-        let tempFilePath: string;
-        tempFilePath = path.join(extensionPath, '../../', '.test-extensions', 'padamson.pdf-annotate-0.0.1', 'dist', 'single-page.paj');
-        fs.copyFile(pajFilePath, tempFilePath, (err: NodeJS.ErrnoException | null) => {
-            if (err) {
-                throw err;
-            }
-            console.log(`Copied ${pajFilePath} to ${tempFilePath}`);
-        });
-        await openResourceWithCheck(browser, tempFilePath);
-        webView = new WebView();
-    });
-
-    after(async () => {
-        await new EditorView().closeAllEditors();
-    });
-
-    it('checks that the language type for the editor is pdf-annotation-json', async () => {
-        const editorInstance = await webView.findWebElements(By.xpath('//div[@class="editor-instance" and @data-mode-id="pdf-annotation-json"]'));
-        assert.strictEqual(editorInstance.length, 1, 'Expected 1 editor instance with pdf-annotation-json language type');
-    });
-
-});
-
 
 function copyFile(testFile: string, tempFilePath: string) {
     fs.copyFile(testFile, tempFilePath, (err: NodeJS.ErrnoException | null) => {

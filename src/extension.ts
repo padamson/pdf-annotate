@@ -19,17 +19,20 @@ export function activate(context: vscode.ExtensionContext) {
 		
 		
 		const tempPdfPath = path.join(context.extensionPath, 'dist', 'temp.pdf');
+		const tempPajPath = path.join(context.extensionPath, 'dist', 'temp.paj');
     
+		let pajPath: string;
 		let pdfPath: string;
 		
-		if (fs.existsSync(tempPdfPath)) {
+		if (fs.existsSync(tempPajPath)) {
+			pajPath = tempPajPath;
 			pdfPath = tempPdfPath;
 		} else {
 			const options: vscode.OpenDialogOptions = {
 				canSelectMany: false,
-				openLabel: 'Select PDF File',
+				openLabel: 'Select PAJ File',
 				filters: {
-					'PDF Files': ['pdf'],
+					'PAJ Files': ['paj'],
 					'All Files': ['*']
 				},
 				defaultUri: vscode.Uri.file(path.join(context.extensionPath)),
@@ -37,17 +40,39 @@ export function activate(context: vscode.ExtensionContext) {
 	
 			const fileUri = await vscode.window.showOpenDialog(options);
 			if (fileUri && fileUri[0]) {
-				pdfPath = fileUri[0].fsPath;
+				pajPath = fileUri[0].fsPath;
 			} else {
-				vscode.window.showErrorMessage('No file selected. Please select a PDF file.');
+				vscode.window.showErrorMessage('No file selected. Please select a PAJ file.');
+				return;
+			}
+			//pdfPath is pajPath with .pdf extension
+			pdfPath = pajPath.replace('.paj', '.pdf');
+			//check that pdfPath exists and if not, throw an error
+			if (!fs.existsSync(pdfPath)) {
+				vscode.window.showErrorMessage('The selected PAJ file does not have a corresponding PDF file.');
 				return;
 			}
 		}
 
-		const panel = vscode.window.createWebviewPanel(
+
+		console.log('pajPath:', pajPath);
+
+		// Open the .paj file as a text document
+		const pajDocument = await vscode.workspace.openTextDocument(pajPath);
+
+		// Show the .paj file in a text editor in the specified column
+		await vscode.window.showTextDocument(pajDocument, {
+			viewColumn: vscode.ViewColumn.One,
+			preserveFocus: true,
+			preview: false
+		});
+
+
+		const pdfPanel = vscode.window.createWebviewPanel(
 			'viewPDF', // Identifies the type of the webview. Used internally
-			'PDF Viewer', // Title of the panel displayed to the user
-			vscode.ViewColumn.One, // Editor column to show the new webview panel in
+			//the title of the panel should be the PDF file name at pdfPath
+			path.basename(pdfPath), // Title of the panel displayed to the user
+			vscode.ViewColumn.Two, // Editor column to show the new webview panel in
 			{
 				enableScripts: true,
 				localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, 'dist'))],
@@ -55,7 +80,9 @@ export function activate(context: vscode.ExtensionContext) {
 		);
 
 		console.log('pdfPath:', pdfPath);
-		panel.webview.html = getWebviewContent(context, panel, pdfPath);
+		pdfPanel.webview.html = getWebviewContent(context, pdfPanel, pdfPath);
+
+
 	});
 
 	context.subscriptions.push(disposable);
@@ -67,10 +94,10 @@ export function deactivate() { }
 // Function to provide HTML content for the webview panel
 function getWebviewContent(context: vscode.ExtensionContext, panel: vscode.WebviewPanel, pdfPath: string): string {
 	const htmlPath = path.join(context.extensionPath, 'dist', 'index.html');
-    let htmlContent = fs.readFileSync(htmlPath, 'utf8');
+	let htmlContent = fs.readFileSync(htmlPath, 'utf8');
 
 	const indexJsPath = path.join(context.extensionPath, 'dist', 'index.js');
-    let indexJsContent = fs.readFileSync(indexJsPath, 'utf8');
+	let indexJsContent = fs.readFileSync(indexJsPath, 'utf8');
 
 	const toolkitPath = vscode.Uri.file(path.join(context.extensionPath, 'dist', 'toolkit.js'));
 	const toolkitUri = panel.webview.asWebviewUri(toolkitPath);
@@ -78,15 +105,15 @@ function getWebviewContent(context: vscode.ExtensionContext, panel: vscode.Webvi
 	const workerMjsPath = vscode.Uri.file(path.join(context.extensionPath, 'dist', 'pdf.worker.mjs'));
 	const workerMjsUri = panel.webview.asWebviewUri(workerMjsPath);
 
-    const pdfUri = vscode.Uri.file(pdfPath).with({ scheme: 'vscode-resource' });
+	const pdfUri = vscode.Uri.file(pdfPath).with({ scheme: 'vscode-resource' });
 	const pdfDatabase64 = fs.readFileSync(pdfPath).toString('base64');
 
-    htmlContent = htmlContent.replace('{{pdfSrc}}', pdfUri.toString());
-    htmlContent = htmlContent.replace('{{indexJsCode}}', indexJsContent.toString());
+	htmlContent = htmlContent.replace('{{pdfSrc}}', pdfUri.toString());
+	htmlContent = htmlContent.replace('{{indexJsCode}}', indexJsContent.toString());
 	htmlContent = htmlContent.replace('{{pdfDataBase64}}', pdfDatabase64);
 	htmlContent = htmlContent.replace('{{workerMjsUri}}', workerMjsUri.toString());
 	htmlContent = htmlContent.replace('{{toolkitUri}}', toolkitUri.toString());
 
-    return htmlContent;
+	return htmlContent;
 
 }

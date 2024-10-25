@@ -27,7 +27,6 @@ testCases.forEach(testCase => {
     describe(`PAJ View WebView tests with ${testCase.testName}`, () => {
         let editorView: EditorView;
         let pdfWebView: WebView;
-        let pajWebView: WebView;
         let workbench: Workbench;
 
         before(async function() {
@@ -74,30 +73,28 @@ testCases.forEach(testCase => {
             await pdfWebView.switchToFrame();
         });
 
-        after(async () => {
-            workbench = new Workbench();
-            // open command prompt, can then be handled as a QuickOpenBox
-            const commandInput = await workbench.openCommandPrompt();
+        after(async function () {
 
-            /* open command prompt and execute a command in it, the text does not need to be a perfect match
-             uses VS Code's fuzzy search to find the best match */
-            await workbench.executeCommand("editorLayoutSingle");
+            this.timeout(10000); // Increase timeout if needed
 
-            await editorView.closeAllEditors();
-            try {
-                const openEditors = await editorView.getOpenEditorTitles();
-                if (openEditors.length > 0) {
-                    await editorView.closeAllEditors();
-                } else {
-                    console.log('No open editors to close');
-                }
-            } catch (error: unknown) {
-                if (error instanceof Error) {
-                    console.warn('Error during cleanup:', error.message);
-                } else {
-                    console.warn('Unknown error during cleanup:', error);
-                }
+            // Dispose of WebView instances if necessary
+            if (pdfWebView) {
+                await pdfWebView.switchBack();
             }
+
+            // Close all editors
+            await editorView.closeAllEditors();
+
+            this.timeout(10000); // Increase timeout if needed
+
+            // Reset any global state if necessary
+            // ...
+
+            // Close the Workbench if this is the last test suite
+            // await workbench.close();
+
+            console.log('Cleanup completed');
+
         });
 
         it('checks that the PDF is rendered in the webview', async () => {

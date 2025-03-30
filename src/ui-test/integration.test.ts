@@ -22,6 +22,14 @@ const testCases = [
     }
 ];
 
+// Function to get extension publisher, name, and version from package.json
+function getExtensionId() {
+    const packageJsonPath = path.join(__dirname, '..', '..', 'package.json');
+    const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+    const extensionId = packageJson.publisher + '.' + packageJson.name + '-' + packageJson.version;
+    return extensionId;
+}
+
 testCases.forEach(testCase => {
     
     describe(`PAJ View WebView tests with ${testCase.testName}`, () => {
@@ -35,7 +43,8 @@ testCases.forEach(testCase => {
             let commandExecuted = false;
             const extensionPath = path.resolve(__dirname);
             const mediaPath = path.join(extensionPath, '../../', 'src', 'ui-test', 'media');
-            const distPath = path.join(extensionPath, '../../', '.test-extensions', 'padamson.pdf-annotate-0.0.1', 'dist');
+            const extensionId = getExtensionId();
+            const distPath = path.join(extensionPath, '../../', '.test-extensions', extensionId, 'dist');
             let pdfFile: string;
             let pajFile: string;
             let tempPdfFilePath: string;

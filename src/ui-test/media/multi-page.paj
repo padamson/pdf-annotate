@@ -1,5 +1,5 @@
 {
-    "pdf-file": "single-page.pdf",
+    "pdf-file": "multi-page.pdf",
     "annotations": {
         "annotation": "Some highlighted lorem ipsum text",
         "page": 1,

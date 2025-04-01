@@ -4,8 +4,29 @@ This is the README for the VS Code extension "pdf-annotate".
 
 ## Planned Features
 
-- annotate PDFs, saving the annotations locally to `.paj` files
-- reference the annotations in Markdown for use in personal knowledge management systems (e.g., [wikibonsai](https://wikibonsai.io))
+### PDF Annotation
+- Annotate PDFs directly within VS Code
+- Highlight text with custom notes and comments
+- Save annotations locally to `.paj` files that stay with your documents
+- Navigate between annotations within a document
+
+### Knowledge Management Workflow
+- Create bidirectional links between annotations and your notes
+- Reference specific PDF annotations in your Markdown documents using a simple syntax
+- Build a connected knowledge graph that includes both your notes and PDF content
+- Integrate seamlessly with personal knowledge management systems like [wikibonsai](https://wikibonsai.io)
+- Track ideas across multiple documents with cross-references
+
+### User Experience
+- Simple, intuitive highlighting interface
+- View all annotations for a document in a sidebar
+- Search across all annotations in your workspace
+- Customize highlight colors and annotation display
+
+### Data Sovereignty
+- All annotations stored locally in plain text
+- Full control over your data with no external dependencies
+- Version control your annotations alongside your documents
 
 ## Requirements
 

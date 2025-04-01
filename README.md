@@ -69,3 +69,52 @@ Also note that the folder `test-resources` (which stores all the required binari
 
 To check the `ui-test` script, see the `script` section inside `package.json`.
 To check the integration test code, see the `src/ui-test/*-test.ts` files.
+
+## Design Decisions
+
+### Local Storage Approach
+The extension uses local `.paj` (PDF Annotation JSON) files to store annotations rather than a remote database for several reasons:
+- Works offline without requiring internet connection
+- Annotations can be version-controlled alongside your documents
+- Better privacy as annotations remain on your local machine
+- Simpler implementation with no server dependencies
+
+### PAJ File Format
+The `.paj` (PDF Annotation JSON) extension was chosen to represent the custom format used for storing annotations:
+- Each `.paj` file contains a JSON structure with a reference to its corresponding PDF file and a collection of annotations
+- The format includes precise location data (page numbers, character positions) to accurately place highlights
+- JSON format ensures annotations are human-readable and easily parseable
+- Simple structure allows for future extensions while maintaining backward compatibility
+
+Example of a `.paj` file structure:
+```json
+{
+    "pdf-file": "document.pdf",
+    "annotations": {
+        "annotation": "Important concept",
+        "page": 1,
+        "start-div": 3,
+        "start-char": 41,
+        "end-div": 5,
+        "end-char": 8,
+        "highlighted-text": "selected text from the PDF"
+    }
+}
+```
+
+### Integration with Knowledge Management
+
+The local `.paj` files are designed to be easily referenced in Markdown for integration with knowledge management systems, allowing users to:
+
+- Link annotations to notes
+- Create bidirectional references between documents
+- Build a personal knowledge graph around PDF content
+
+## Future Roadmap
+
+Potential future enhancements:
+- Cloud sync option for sharing annotations across devices
+- Collaborative annotation features
+- Search functionality across multiple annotation files
+- Integration with additional PKM (Personal Knowledge Management) tools
+- Improved text layer alignment for highlighting

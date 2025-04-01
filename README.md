@@ -1,13 +1,11 @@
 # pdf-annotate
 
-This is the README for the VS Code extension "pdf-annotate". I recommend using it with [wikibonsai](https://wikibonsai.io) for personal knowledge management.
+This is the README for the VS Code extension "pdf-annotate".
 
-## Features
+## Planned Features
 
-- annotate PDFs
-- save references to annotations in Markdown
-
-![demo](./demo.gif)
+- annotate PDFs, saving the annotations locally to `.paj` files
+- reference the annotations in Markdown for use in personal knowledge management systems (e.g., [wikibonsai](https://wikibonsai.io))
 
 ## Requirements
 

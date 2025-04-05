@@ -12,10 +12,39 @@ export function activate(context: vscode.ExtensionContext) {
 	// This line of code will only be executed once when your extension is activated
 	console.log('Congratulations, your extension "pdf-annotate" is now active!');
 
+	
+	const openPDFCommand = vscode.commands.registerCommand('pdf-annotate.openPDF', async (uri?: vscode.Uri) => {
+		if (!uri) {
+            // No URI provided, could add file picker here later
+            return;
+        }
+
+        // Generate the .paj file path based on the PDF path
+        const pdfPath = uri.fsPath;
+        const pajPath = pdfPath.replace(/\.pdf$/i, '.paj');
+
+        // Check if .paj file already exists
+        const fs = require('fs');
+        const path = require('path');
+        
+        if (!fs.existsSync(pajPath)) {
+            // Create a new .paj file with default structure
+            const pajContent = {
+                'pdf-file': path.basename(pdfPath),
+                'annotations': []
+            };
+            
+            // Write the .paj file
+            fs.writeFileSync(pajPath, JSON.stringify(pajContent, null, 2));
+        }
+        
+        // Future: Add code to open the PDF and .paj file in editors
+	});
+
 	// The command has been defined in the package.json file
 	// Now provide the implementation of the command with registerCommand
 	// The commandId parameter must match the command field in package.json
-	const disposable = vscode.commands.registerCommand('pdf-annotate.viewPAJ', async () => {
+	const viewPAJCommand = vscode.commands.registerCommand('pdf-annotate.viewPAJ', async () => {
 		
 		
 		const tempPdfPath = path.join(context.extensionPath, 'dist', 'temp.pdf');
@@ -85,7 +114,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	});
 
-	context.subscriptions.push(disposable);
+	context.subscriptions.push(openPDFCommand, viewPAJCommand);
 }
 
 // This method is called when your extension is deactivated

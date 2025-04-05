@@ -21,6 +21,10 @@
       {
         "command": "pdf-annotate.viewPAJ",
         "title": "View PAJ"
+      },
+      {
+        "command": "pdf-annotate.openPDF",
+        "title": "Open PDF"
       }
     ],
     "languages": [
